@@ -49,46 +49,70 @@ bool TimeSync::tick() {
 }
 
 // ----------------------------------------------------------------
+void TimeSync::forceRefresh() {
+  _lastUpdateMs = millis();
+  _updateStrings();
+}
+
+// ----------------------------------------------------------------
 void TimeSync::_updateStrings() {
   if (!s_ntp.isTimeSet()) {
     if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
       g_state.timeStr = "--:--";
+      g_state.ampmStr = "";
       g_state.dateStr = "---";
       xSemaphoreGive(g_state.mutex);
     }
     return;
   }
 
-  // Build "HH:MM"
-  char timeBuf[8];
-  snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d",
-           s_ntp.getHours(), s_ntp.getMinutes());
+  int rawHours = s_ntp.getHours();
+  int minutes  = s_ntp.getMinutes();
+  int displayHours = rawHours;
+  char ampmBuf[4] = "";
+
+  bool is24h = true;
+  if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+    is24h = g_state.is24Hour;
+    xSemaphoreGive(g_state.mutex);
+  }
+
+  // Format 12-hour vs 24-hour
+  if (!is24h) {
+    if (rawHours == 0) {
+      displayHours = 12;
+      strcpy(ampmBuf, "AM");
+    } else if (rawHours == 12) {
+      displayHours = 12;
+      strcpy(ampmBuf, "PM");
+    } else if (rawHours > 12) {
+      displayHours = rawHours - 12;
+      strcpy(ampmBuf, "PM");
+    } else {
+      strcpy(ampmBuf, "AM");
+    }
+  }
+
+  // Build time string
+  char timeBuf[12];
+  snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", displayHours, minutes);
 
   // Build "Mon, 04 Nov"
-  // NTPClient gives day of week (0=Sunday) and epoch
-  unsigned long epoch   = s_ntp.getEpochTime();
+  unsigned long epoch = s_ntp.getEpochTime();
   int dayOfWeek = s_ntp.getDay();  // 0=Sun
 
-  // Compute day, month from epoch
-  unsigned long days    = epoch / 86400UL;
-  // Offset: epoch day 0 = Thu 1 Jan 1970
-  // Zeller-like simple decomposition
-  unsigned long rem     = epoch % 86400UL;
-  (void)rem;
-
-  // Use mktime/gmtime approach via struct tm-compatible math
-  // Simple: use epoch seconds
   time_t t = (time_t)epoch;
   struct tm* gmt = gmtime(&t);
   int day   = gmt->tm_mday;
   int month = gmt->tm_mon + 1;   // 1..12
 
-  char dateBuf[20];
+  char dateBuf[24];
   snprintf(dateBuf, sizeof(dateBuf), "%s, %02d %s",
            DAY_NAMES[dayOfWeek], day, MONTH_NAMES[month]);
 
   if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
     g_state.timeStr = String(timeBuf);
+    g_state.ampmStr = String(ampmBuf);
     g_state.dateStr = String(dateBuf);
     xSemaphoreGive(g_state.mutex);
   }

@@ -1,7 +1,7 @@
 #pragma once
 
 // ============================================================
-//  IdleScreen.h — Idle (clock + weather) screen declaration
+//  IdleScreen.h — Idle (clock) screen declaration
 // ============================================================
 
 #include "AppState.h"
@@ -10,22 +10,23 @@
 class IdleScreen {
 public:
   /**
-   * Full initial draw of the idle screen. Call when switching
-   * to this screen from another, or on first boot.
+   * Full initial draw of the idle screen.
    */
   static void draw();
 
   /**
-   * Lightweight update — only repaints regions that have changed.
-   * Call from the main loop every second.
-   * @param prevTime  Previous time string (to detect changes)
-   * @param prevDate  Previous date string
+   * Lightweight update — repaints time/date if changed.
    */
   static void update(const String& prevTime, const String& prevDate);
 
+  /**
+   * Handle touch tap on idle screen to toggle 12h/24h mode.
+   */
+  static bool handleTouch(int tx, int ty);
+
 private:
   static void drawBackground();
-  static void drawTime(const String& t);
+  static void drawTime(const String& t, const String& ampm);
   static void drawDate(const String& d);
   static void drawDivider();
   static void drawFooter();

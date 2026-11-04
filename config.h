@@ -8,10 +8,11 @@
 #define WIFI_SSID       "YourSSID"
 #define WIFI_PASSWORD   "YourPassword"
 
-// ----- NTP -----
+// ----- NTP & Time Format -----
 #define NTP_SERVER      "pool.ntp.org"
 #define NTP_UTC_OFFSET  19800   // seconds east of UTC (e.g. IST = 5.5h = 19800)
 #define NTP_UPDATE_INTERVAL_MS  3600000UL  // 1 hour
+#define TIME_FORMAT_24H true    // true = 24-hour (14:30), false = 12-hour (02:30 PM)
 
 // ----- Display pins (ILI9341 SPI) -----
 #define PIN_LCD_MOSI    13

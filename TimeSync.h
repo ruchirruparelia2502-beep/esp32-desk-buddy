@@ -21,6 +21,11 @@ public:
    */
   static bool tick();
 
+  /**
+   * Force an immediate refresh of timeStr/dateStr (e.g. after 12h/24h toggle)
+   */
+  static void forceRefresh();
+
 private:
   static bool _started;
   static unsigned long _lastUpdateMs;

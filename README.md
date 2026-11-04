@@ -50,7 +50,10 @@ Open **Tools → Manage Libraries...** (or `Cmd + Shift + I` on macOS) and insta
    #define WIFI_SSID       "YourWiFiNetwork"
    #define WIFI_PASSWORD   "YourWiFiPassword"
    #define NTP_UTC_OFFSET  19800   // Seconds offset (e.g. UTC+5:30 IST = 19800)
+   #define TIME_FORMAT_24H true    // true = 24-hour (14:30), false = 12-hour (02:30 PM)
    ```
+
+   > 💡 *Tip: You can also tap anywhere on the screen during clock mode to toggle between 12-Hour and 24-Hour on the fly!*
 
 ---
 

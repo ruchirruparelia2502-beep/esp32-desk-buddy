@@ -177,6 +177,10 @@ void loop() {
         delay(80);
         MusicScreen::update(s_lastTrack);  // refresh play/pause button state
       }
+    } else if (targetScreen == Screen::IDLE) {
+      // Tap on clock screen toggles 12H / 24H mode!
+      IdleScreen::handleTouch(tp.x, tp.y);
+      delay(120);
     }
   }
 

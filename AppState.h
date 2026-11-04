@@ -19,8 +19,10 @@ struct AppState {
   Screen   currentScreen      = Screen::IDLE;
   BTSource btSource           = BTSource::NONE;
   TrackInfo  track;
-  String   timeStr;              // "HH:MM"
+  String   timeStr;              // "14:05" or "02:05"
+  String   ampmStr;              // "AM", "PM", or "" (in 24h mode)
   String   dateStr;              // "Mon, 04 Nov"
+  bool     is24Hour           = true;
   unsigned long lastMusicUpdateMs = 0;
   bool     wifiConnected      = false;
   SemaphoreHandle_t mutex     = nullptr;
