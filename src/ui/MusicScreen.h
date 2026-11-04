@@ -1,7 +1,7 @@
 #pragma once
 
 // ============================================================
-//  MusicScreen.h — Music (now-playing) screen declaration
+//  MusicScreen.h — Minimalist Funky Music Screen Declaration
 // ============================================================
 
 #include "../AppState.h"
@@ -10,31 +10,24 @@
 class MusicScreen {
 public:
   /**
-   * Full initial draw of the music screen. Call when switching
-   * to this screen from another.
+   * Full initial draw of the music screen.
    */
   static void draw();
 
   /**
-   * Lightweight update — only repaints regions that changed.
-   * Pass the previous track snapshot to detect diffs.
+   * Lightweight update — repaints only changed text or play state.
    */
   static void update(const TrackInfo& prev);
 
   /**
-   * Handle a touch event at (tx, ty).  Returns true if a BT command
-   * was sent as a result.
+   * Handle touch input across the control buttons.
    */
   static bool handleTouch(int tx, int ty);
 
 private:
   static void drawBackground();
-  static void drawHeader(BTSource src);
-  static void drawTitle(const String& title);
   static void drawArtist(const String& artist);
-  static void drawAlbum(const String& album);
-  static void drawDivider();
+  static void drawTitle(const String& title);
+  static void drawScrubber();
   static void drawButtons(bool isPlaying);
-  static void drawButton(int x, int y, int w, int h,
-                         uint32_t bgColor, const char* label);
 };
