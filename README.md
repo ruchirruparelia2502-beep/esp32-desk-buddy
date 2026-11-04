@@ -101,3 +101,15 @@ Click the **Upload** button (arrow icon `➜`) in Arduino IDE.
 | Touch SCL | GPIO 32 | I2C Clock |
 | Touch INT | GPIO 36 | Interrupt |
 | Touch RST | GPIO 25 | Reset |
+
+---
+
+## 📜 License & Commercial Use Notice
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.
+
+- ❌ **Non-Commercial**: You may **NOT** use this project, its code, hardware designs, or derivatives for commercial purposes. You cannot manufacture, sell, or monetize devices running this firmware without explicit written permission.
+- ✅ **Personal / Non-Commercial Use**: You are free to build, modify, and run this for personal DIY projects.
+- 🔄 **ShareAlike**: Any modifications or derivatives must be shared under this same license.
+
+See the [LICENSE](LICENSE) file for complete details.
