@@ -1,6 +1,6 @@
 // ============================================================
 //  MusicScreen.cpp — Minimalist Funky OLED Black Music UI
-//  Auto-fitting typography: Entire title & artist ALWAYS fit!
+//  Auto-fitting typography: BOTH Artist & Title ALWAYS fit!
 // ============================================================
 
 #include "MusicScreen.h"
@@ -108,21 +108,35 @@ void MusicScreen::drawArtist(const String& artist) {
   for (int i = 0; i < a.length(); i++) a[i] = toupper(a[i]);
 
   display.setTextDatum(lgfx::top_left);
-  display.setFont(&fonts::Font4);
   display.setTextColor(c(display, COL_TEXT_MAIN));
 
   const int availableWidth = 272; // 320 - 24*2
+
+  // Start with Font4 (bold display typography)
+  display.setFont(&fonts::Font4);
   display.setTextSize(1.0f);
   int w = display.textWidth(a.c_str());
 
   if (w <= availableWidth) {
+    // Fits at 100% scale
     display.drawString(a.c_str(), 24, 30);
   } else {
-    // Dynamically scale down so full artist fits
     float scale = (float)availableWidth / (float)w;
-    display.setTextSize(scale);
-    display.drawString(a.c_str(), 24, 30);
-    display.setTextSize(1.0f);
+    if (scale >= 0.60f) {
+      // Dynamically scale down so full artist fits cleanly
+      display.setTextSize(scale);
+      display.drawString(a.c_str(), 24, 30);
+      display.setTextSize(1.0f);
+    } else {
+      // For extra-long artist names, use Font2 with precise scaling for sharpness
+      display.setFont(&fonts::Font2);
+      display.setTextSize(1.0f);
+      int w2 = display.textWidth(a.c_str());
+      float scale2 = (w2 > availableWidth) ? ((float)availableWidth / (float)w2) : 1.0f;
+      display.setTextSize(scale2);
+      display.drawString(a.c_str(), 24, 34);
+      display.setTextSize(1.0f);
+    }
   }
 }
 
