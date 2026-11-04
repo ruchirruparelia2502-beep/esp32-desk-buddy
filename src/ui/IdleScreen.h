@@ -27,6 +27,6 @@ private:
   static void drawBackground();
   static void drawTime(const String& t);
   static void drawDate(const String& d);
-  static void drawWeather();
+  static void drawDivider();
   static void drawFooter();
 };
