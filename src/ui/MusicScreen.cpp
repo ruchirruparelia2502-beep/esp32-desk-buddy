@@ -1,6 +1,6 @@
 // ============================================================
 //  MusicScreen.cpp — Minimalist Funky OLED Black Music UI
-//  No badges, pure typography, high-contrast monochrome design
+//  Auto-fitting typography: Entire title & artist ALWAYS fit!
 // ============================================================
 
 #include "MusicScreen.h"
@@ -46,13 +46,10 @@ void MusicScreen::update(const TrackInfo& prev) {
 
   uint16_t bg = c(display, COL_BG);
 
-  if (cur.artist != prev.artist) {
-    display.fillRect(20, 26, 280, 42, bg);
+  // If artist or title changes, clear the combined meta area
+  if (cur.artist != prev.artist || cur.title != prev.title) {
+    display.fillRect(20, 24, 280, 88, bg);
     drawArtist(cur.artist);
-  }
-
-  if (cur.title != prev.title) {
-    display.fillRect(20, 72, 280, 32, bg);
     drawTitle(cur.title);
   }
 
@@ -106,36 +103,96 @@ void MusicScreen::drawBackground() {
 // ----------------------------------------------------------------
 void MusicScreen::drawArtist(const String& artist) {
   String a = artist.isEmpty() ? "PORTISHEAD" : artist;
-  if (a.length() > 20) a = a.substring(0, 19) + ".";
 
-  // Bold uppercase stylized headline
+  // Uppercase for stylish funky look
   for (int i = 0; i < a.length(); i++) a[i] = toupper(a[i]);
 
   display.setTextDatum(lgfx::top_left);
   display.setFont(&fonts::Font4);
-  display.setTextSize(1);
   display.setTextColor(c(display, COL_TEXT_MAIN));
-  display.drawString(a.c_str(), 24, 32);
+
+  const int availableWidth = 272; // 320 - 24*2
+  display.setTextSize(1.0f);
+  int w = display.textWidth(a.c_str());
+
+  if (w <= availableWidth) {
+    display.drawString(a.c_str(), 24, 30);
+  } else {
+    // Dynamically scale down so full artist fits
+    float scale = (float)availableWidth / (float)w;
+    display.setTextSize(scale);
+    display.drawString(a.c_str(), 24, 30);
+    display.setTextSize(1.0f);
+  }
 }
 
 // ----------------------------------------------------------------
 void MusicScreen::drawTitle(const String& title) {
   String t = title.isEmpty() ? "Undenied" : title;
-  if (t.length() > 28) t = t.substring(0, 27) + "...";
 
   display.setTextDatum(lgfx::top_left);
   display.setFont(&fonts::Font2);
-  display.setTextSize(1);
   display.setTextColor(c(display, COL_TEXT_SUB));
-  display.drawString(t.c_str(), 24, 76);
+
+  const int availableWidth = 272; // 320 - 24*2
+  display.setTextSize(1.0f);
+  int w = display.textWidth(t.c_str());
+
+  if (w <= availableWidth) {
+    // Fits comfortably in 1 line
+    display.drawString(t.c_str(), 24, 68);
+  } else {
+    // Check if slight proportional scaling fits 1 line
+    float scale = (float)availableWidth / (float)w;
+    if (scale >= 0.72f) {
+      display.setTextSize(scale);
+      display.drawString(t.c_str(), 24, 68);
+      display.setTextSize(1.0f);
+    } else {
+      // Split into 2 clean lines so entire title is 100% visible
+      int mid = t.length() / 2;
+      int splitPos = -1;
+      int minDiff = 999;
+      for (int i = 0; i < t.length(); i++) {
+        if (t[i] == ' ') {
+          int d = abs(i - mid);
+          if (d < minDiff) {
+            minDiff = d;
+            splitPos = i;
+          }
+        }
+      }
+
+      if (splitPos != -1) {
+        String line1 = t.substring(0, splitPos);
+        String line2 = t.substring(splitPos + 1);
+        int w1 = display.textWidth(line1.c_str());
+        int w2 = display.textWidth(line2.c_str());
+        int maxW = max(w1, w2);
+        float lineScale = 1.0f;
+        if (maxW > availableWidth) {
+          lineScale = (float)availableWidth / (float)maxW;
+        }
+        display.setTextSize(lineScale);
+        display.drawString(line1.c_str(), 24, 60);
+        display.drawString(line2.c_str(), 24, 78);
+        display.setTextSize(1.0f);
+      } else {
+        // No space found, scale down directly
+        display.setTextSize(scale);
+        display.drawString(t.c_str(), 24, 68);
+        display.setTextSize(1.0f);
+      }
+    }
+  }
 }
 
 // ----------------------------------------------------------------
 void MusicScreen::drawScrubber() {
   // Ultra-minimal hairline progress track
-  display.drawFastHLine(24, 128, 272, c(display, COL_LINE_BG));
-  display.drawFastHLine(24, 128, 105, c(display, COL_LINE_ACTIVE));
-  display.fillCircle(129, 128, 3, c(display, COL_LINE_ACTIVE));
+  display.drawFastHLine(24, 126, 272, c(display, COL_LINE_BG));
+  display.drawFastHLine(24, 126, 105, c(display, COL_LINE_ACTIVE));
+  display.fillCircle(129, 126, 3, c(display, COL_LINE_ACTIVE));
 }
 
 // ----------------------------------------------------------------
