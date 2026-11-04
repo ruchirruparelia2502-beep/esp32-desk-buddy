@@ -1,6 +1,6 @@
 // ============================================================
-//  MusicScreen.cpp — Minimalist Black & White Music UI
-//  Inspired by modern card player (white canvas, bold typography)
+//  MusicScreen.cpp — Unified OLED Black Minimalist Music UI
+//  Matches the exact dark aesthetic of the Idle Clock screen
 // ============================================================
 
 #include "MusicScreen.h"
@@ -8,13 +8,14 @@
 #include "../bt/AMSClient.h"
 #include "../bt/AVRCPHandler.h"
 
-// Monochrome Palette
-static const uint32_t COL_BG          = 0xFFFFFF;  // Clean white
-static const uint32_t COL_TEXT_MAIN   = 0x000000;  // Deep black
-static const uint32_t COL_TEXT_MUTED  = 0x666666;  // Mid gray
-static const uint32_t COL_TEXT_LIGHT  = 0x999999;  // Light gray
-static const uint32_t COL_LINE        = 0xE0E0E0;  // Subtle separator / progress track
-static const uint32_t COL_LINE_ACTIVE = 0x000000;  // Active progress
+// Unified OLED Dark Palette
+static const uint32_t COL_BG          = 0x000000;  // Pure black (matches clock)
+static const uint32_t COL_TEXT_MAIN   = 0xFFFFFF;  // Crisp white
+static const uint32_t COL_TEXT_TITLE  = 0xE4E4E7;  // Off-white
+static const uint32_t COL_TEXT_MUTED  = 0x71717A;  // Muted zinc gray
+static const uint32_t COL_LINE_BG     = 0x27272A;  // Progress track background
+static const uint32_t COL_LINE_ACTIVE = 0xFFFFFF;  // Progress track active
+static const uint32_t COL_BADGE_LINE  = 0x27272A;  // Source badge border
 
 // Helper
 static uint16_t c(LGFX& d, uint32_t hex) {
@@ -55,17 +56,17 @@ void MusicScreen::update(const TrackInfo& prev) {
   uint16_t bg = c(display, COL_BG);
 
   if (cur.artist != prev.artist) {
-    display.fillRect(15, 38, 290, 32, bg);
+    display.fillRect(15, 36, 290, 32, bg);
     drawArtist(cur.artist);
   }
 
   if (cur.title != prev.title) {
-    display.fillRect(15, 72, 290, 28, bg);
+    display.fillRect(15, 70, 290, 28, bg);
     drawTitle(cur.title);
   }
 
   if (cur.album != prev.album) {
-    display.fillRect(15, 102, 290, 22, bg);
+    display.fillRect(15, 100, 290, 22, bg);
     drawAlbum(cur.album);
   }
 
@@ -119,30 +120,35 @@ void MusicScreen::drawBackground() {
 
 // ----------------------------------------------------------------
 void MusicScreen::drawHeader(BTSource src) {
-  // Pill badge: [IOS · BLUETOOTH] or [ANDROID · BLUETOOTH]
   const char* label = (src == BTSource::ANDROID_BT) ? "ANDROID . BT" : "IOS . BT";
 
-  display.drawRoundRect(20, 14, 100, 18, 4, c(display, COL_LINE));
+  // Dark badge with subtle border
+  display.drawRoundRect(20, 14, 95, 18, 4, c(display, COL_BADGE_LINE));
   display.setTextDatum(lgfx::middle_center);
   display.setFont(&fonts::Font0); // tiny
   display.setTextSize(1);
-  display.setTextColor(c(display, COL_TEXT_LIGHT));
-  display.drawString(label, 70, 23);
+  display.setTextColor(c(display, COL_TEXT_MUTED));
+  display.drawString(label, 67, 23);
+
+  // Status right
+  display.setTextDatum(lgfx::top_right);
+  display.setTextColor(c(display, 0x444444));
+  display.drawString("NOW PLAYING", 300, 18);
 }
 
 // ----------------------------------------------------------------
 void MusicScreen::drawArtist(const String& artist) {
   String a = artist.isEmpty() ? "PORTISHEAD" : artist;
-  if (a.length() > 24) a = a.substring(0, 23) + ".";
+  if (a.length() > 22) a = a.substring(0, 21) + ".";
 
-  // Force uppercase for header look
+  // Uppercase for high-impact bold typography
   for (int i = 0; i < a.length(); i++) a[i] = toupper(a[i]);
 
   display.setTextDatum(lgfx::top_left);
   display.setFont(&fonts::Font4);
   display.setTextSize(1);
   display.setTextColor(c(display, COL_TEXT_MAIN));
-  display.drawString(a.c_str(), 20, 42);
+  display.drawString(a.c_str(), 20, 40);
 }
 
 // ----------------------------------------------------------------
@@ -153,8 +159,8 @@ void MusicScreen::drawTitle(const String& title) {
   display.setTextDatum(lgfx::top_left);
   display.setFont(&fonts::Font2);
   display.setTextSize(1);
-  display.setTextColor(c(display, COL_TEXT_MUTED));
-  display.drawString(t.c_str(), 20, 74);
+  display.setTextColor(c(display, COL_TEXT_TITLE));
+  display.drawString(t.c_str(), 20, 72);
 }
 
 // ----------------------------------------------------------------
@@ -166,34 +172,34 @@ void MusicScreen::drawAlbum(const String& album) {
   display.setTextDatum(lgfx::top_left);
   display.setFont(&fonts::Font0);
   display.setTextSize(1);
-  display.setTextColor(c(display, COL_TEXT_LIGHT));
-  display.drawString(al.c_str(), 20, 98);
+  display.setTextColor(c(display, COL_TEXT_MUTED));
+  display.drawString(al.c_str(), 20, 96);
 }
 
 // ----------------------------------------------------------------
 void MusicScreen::drawDivider() {
-  // Progress bar style track line
-  display.drawFastHLine(20, 130, 280, c(display, COL_LINE));
-  display.drawFastHLine(20, 130, 110, c(display, COL_LINE_ACTIVE));
-  display.fillCircle(130, 130, 3, c(display, COL_LINE_ACTIVE));
+  // Sleek minimalist progress line on pure black
+  display.drawFastHLine(20, 126, 280, c(display, COL_LINE_BG));
+  display.drawFastHLine(20, 126, 110, c(display, COL_LINE_ACTIVE));
+  display.fillCircle(130, 126, 3, c(display, COL_LINE_ACTIVE));
 }
 
 // ----------------------------------------------------------------
 void MusicScreen::drawButtons(bool isPlaying) {
   uint16_t bg = c(display, COL_BG);
-  uint16_t black = c(display, COL_TEXT_MAIN);
+  uint16_t white = c(display, COL_TEXT_MAIN);
 
-  // Erase button area
+  // Clear button area
   display.fillRect(0, 150, 320, 80, bg);
 
-  // PREV Button (|<< icon)
+  // PREV Button (|< icon)
   display.setTextDatum(lgfx::middle_center);
   display.setFont(&fonts::Font4);
-  display.setTextColor(black);
+  display.setTextColor(white);
   display.drawString("|<", 70, 185);
 
-  // Center PLAY/PAUSE Circular Button
-  display.fillCircle(160, 185, 24, black);
+  // Center Circular Button (Crisp White Circle with Black Icon)
+  display.fillCircle(160, 185, 23, white);
   display.setTextColor(c(display, COL_BG));
   display.setFont(&fonts::Font4);
 
@@ -205,11 +211,11 @@ void MusicScreen::drawButtons(bool isPlaying) {
     display.drawString(">", 162, 185);
   }
 
-  // NEXT Button (>>| icon)
-  display.setTextColor(black);
+  // NEXT Button (>| icon)
+  display.setTextColor(white);
   display.drawString(">|", 250, 185);
 }
 
 void MusicScreen::drawButton(int x, int y, int w, int h, uint32_t bgColor, const char* label) {
-  // Kept for backward compatibility if called
+  // Kept for signature compatibility
 }
