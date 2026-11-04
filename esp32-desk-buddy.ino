@@ -12,7 +12,7 @@
 #include <WiFi.h>
 
 // ---- Display ----
-#include "ui/DisplaySetup.h"
+#include "DisplaySetup.h"
 LGFX display;   // global instance referenced by all UI modules
 
 // ---- App state ----
@@ -21,12 +21,12 @@ AppState g_state;  // global definition
 
 // ---- Modules ----
 #include "config.h"
-#include "ui/IdleScreen.h"
-#include "ui/MusicScreen.h"
-#include "touch/TouchManager.h"
-#include "bt/AMSClient.h"
-#include "bt/AVRCPHandler.h"
-#include "network/TimeSync.h"
+#include "IdleScreen.h"
+#include "MusicScreen.h"
+#include "TouchManager.h"
+#include "AMSClient.h"
+#include "AVRCPHandler.h"
+#include "TimeSync.h"
 // ================================================================
 //  Forward declarations
 // ================================================================

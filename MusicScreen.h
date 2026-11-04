@@ -4,7 +4,7 @@
 //  MusicScreen.h — Minimalist Funky Music Screen Declaration
 // ============================================================
 
-#include "../AppState.h"
+#include "AppState.h"
 #include "DisplaySetup.h"
 
 class MusicScreen {

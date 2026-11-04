@@ -5,7 +5,7 @@
 // ============================================================
 
 #include <Arduino.h>
-#include "../config.h"
+#include "config.h"
 
 struct TouchPoint {
   int x  = 0;

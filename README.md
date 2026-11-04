@@ -1,109 +1,103 @@
 # ESP32 Desk Buddy — ESP32-2432S024C (CYD 2.4" Capacitive)
 
-A minimalist monochrome PlatformIO / Arduino firmware for your Cheap Yellow Display (CYD) 2.4" Capacitive Touch board:
+A minimalist monochrome firmware for the Cheap Yellow Display (CYD) 2.4" Capacitive Touch board.
 
 - 🎵 **Music Now Playing** — iOS via BLE Apple Media Service (AMS), Android via Classic BT AVRCP
-- ⏰ **Clock** — NTP-synced, auto-updates
-- 🖤 **Minimalist Black & White UI** — Modern card player layout inspired by clean hardware typography
-- 👆 **Touch Controls** — Prev, Play/Pause (circular button), Next
+- ⏰ **NTP Clock** — Automatically syncs accurate time over Wi-Fi
+- 🖤 **Minimalist OLED Dark UI** — Unified deep black aesthetic with dynamic auto-fit typography
+- 👆 **Touch Controls** — Skip Back (`|<`), Play/Pause circular button, Skip Forward (`>|`)
+- 🔋 **Battery Support** — 3.7V LiPo with onboard charging via 2-pin JST 1.25mm connector
 
 ---
 
-## Hardware
+## 🚀 Arduino IDE Setup Guide
 
-| Component | Details |
-|-----------|---------|
-| MCU | ESP32-WROOM-32 |
-| Display | ILI9341 2.4" IPS 240×320, SPI |
-| Touch | CST820 capacitive multi-touch, I2C |
-| Board | ESP32-2432S024C (CYD) |
-| Battery Support | Onboard LiPo charger via 2-pin JST 1.25mm |
-
-### Pin Map
-
-| Signal | GPIO |
-|--------|------|
-| LCD MOSI | 13 |
-| LCD MISO | 12 |
-| LCD SCLK | 14 |
-| LCD CS | 15 |
-| LCD DC | 2 |
-| LCD BL | 21 |
-| Touch SDA | 33 |
-| Touch SCL | 32 |
-| Touch INT | 36 |
-| Touch RST | 25 |
+### 1. Install ESP32 Board Support in Arduino IDE
+1. Open **Arduino IDE**.
+2. Go to **File → Preferences** (or `Cmd + ,` on macOS).
+3. In **Additional Board Manager URLs**, add:
+   ```
+   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+   ```
+4. Go to **Tools → Board → Boards Manager...**, search for `esp32` by **Espressif Systems**, and click **Install**.
 
 ---
 
-## First-Time Setup
+### 2. Install Required Libraries
+Open **Tools → Manage Libraries...** (or `Cmd + Shift + I` on macOS) and install:
 
-### 1. Install PlatformIO
+| Library Name | Author | Version | Notes |
+|--------------|--------|---------|-------|
+| **LovyanGFX** | lovyan03 | Latest (1.1.x+) | High-performance graphics driver |
+| **TAMC_CST820** | TAMC | Latest (1.0.x+) | CST820 Capacitive touch driver |
+| **NTPClient** | Fabrice Weinberg / arduino-libraries | Latest (3.2.x+) | NTP time synchronization |
+| **NimBLE-Arduino** | h2zero | Latest (1.4.x+) | Fast, lightweight BLE stack for iOS AMS |
+| **ESP32-A2DP** | Phil Schatzmann | Latest (1.8.x+) | Android Bluetooth A2DP/AVRCP sink |
 
-```bash
-pip install platformio
-# or use the VSCode PlatformIO extension
-```
-
-### 2. Configure WiFi & Timezone in `src/config.h`
-
-```cpp
-#define WIFI_SSID       "YourSSID"
-#define WIFI_PASSWORD   "YourPassword"
-#define NTP_UTC_OFFSET  19800        // seconds — adjust for your timezone
-                                     // e.g. UTC+5:30 (IST) = 19800
-                                     //      UTC+1 (BST) = 3600
-                                     //      UTC-5 (EST) = -18000
-```
-
-### 3. Build & Flash
-
-```bash
-cd esp32-desk-buddy
-pio run --target upload
-pio device monitor   # 115200 baud
-```
+> 💡 *Note: If ESP32-A2DP asks to install dependencies, allow it.*
 
 ---
 
-## Pairing
+### 3. Open the Project in Arduino IDE
+1. Download or clone this repository:
+   ```bash
+   git clone https://github.com/ruchirruparelia2502-beep/esp32-desk-buddy.git
+   ```
+2. In Arduino IDE, go to **File → Open...** and select **`esp32-desk-buddy.ino`**.
+3. All code files will open as tabs across the top!
+4. Click the **`config.h`** tab and enter your Wi-Fi details:
+   ```cpp
+   #define WIFI_SSID       "YourWiFiNetwork"
+   #define WIFI_PASSWORD   "YourWiFiPassword"
+   #define NTP_UTC_OFFSET  19800   // Seconds offset (e.g. UTC+5:30 IST = 19800)
+   ```
 
-### iOS (Apple Music / Spotify / YouTube Music / Podcasts)
-1. Open **Settings → Bluetooth** on your iPhone
-2. Pair with **"DeskBuddy"**
-3. Open any audio app — metadata appears automatically via Apple Media Service (AMS)
+---
+
+### 4. Board & Tools Settings (Important!)
+Configure your **Tools** menu in Arduino IDE:
+
+- **Board:** `ESP32 Dev Module`
+- **CPU Frequency:** `240MHz (WiFi/BT)`
+- **Flash Frequency:** `80MHz`
+- **Flash Mode:** `QIO`
+- **Flash Size:** `4MB (32Mb)`
+- **Partition Scheme:** `Huge APP (3MB No OTA/1MB SPIFFS)` ⚠️ *(Crucial so Bluetooth fits)*
+- **Core Debug Level:** `None`
+- **Port:** Select your board's serial port (e.g. `/dev/cu.usbserial-...` or `COMx`)
+
+---
+
+### 5. Upload!
+Click the **Upload** button (arrow icon `➜`) in Arduino IDE.
+
+---
+
+## 📱 Pairing Instructions
+
+### iOS (Apple Music, Spotify, Podcasts, YouTube Music)
+1. Open **Settings → Bluetooth** on your iPhone.
+2. Select and pair with **"DeskBuddy"**.
+3. Start playing music — track title and artist appear automatically via Apple Media Service (AMS).
 
 ### Android
-1. Open **Settings → Bluetooth** on your Android device
-2. Pair with **"DeskBuddy BT"**
-3. Play music — metadata arrives via AVRCP
+1. Open **Settings → Bluetooth** on your Android device.
+2. Pair with **"DeskBuddy BT"**.
+3. Play music — metadata appears automatically via AVRCP.
 
 ---
 
-## Screen Layouts
+## 📌 Hardware Pinout (ESP32-2432S024C)
 
-### Idle Screen (Dark / Minimalist)
-- Full black background
-- Large bold digital clock (NTP synced)
-- Formatted date
-- Subdued "WAITING FOR MUSIC" status
-
-### Music Screen (High Contrast Black & White)
-- Clean white background
-- Device source pill indicator (`IOS . BT` / `ANDROID . BT`)
-- Artist name in bold uppercase typography
-- Track title and album in neutral tones
-- Minimal progress rule
-- Touch controls: `|<` (Prev), `(||) / (>)` (Circular Play/Pause), `>|` (Next)
-
----
-
-## Library Dependencies
-
-| Library | Version | Purpose |
-|---------|---------|---------|
-| LovyanGFX | ^1.1.16 | High-speed display driver |
-| TAMC_CST820 | ^1.0.2 | Capacitive touch driver |
-| NTPClient | ^3.2.1 | Time sync |
-| NimBLE-Arduino | ^1.4.2 | iOS BLE / AMS |
-| ESP32-A2DP | ^1.8.6 | Android A2DP sink / AVRCP |
+| Function | Pin | Notes |
+|----------|-----|-------|
+| LCD MOSI | GPIO 13 | SPI Data Out |
+| LCD MISO | GPIO 12 | SPI Data In |
+| LCD SCLK | GPIO 14 | SPI Clock |
+| LCD CS | GPIO 15 | Chip Select |
+| LCD DC | GPIO 2 | Data / Command |
+| LCD Backlight | GPIO 21 | Backlight PWM |
+| Touch SDA | GPIO 33 | I2C Data |
+| Touch SCL | GPIO 32 | I2C Clock |
+| Touch INT | GPIO 36 | Interrupt |
+| Touch RST | GPIO 25 | Reset |

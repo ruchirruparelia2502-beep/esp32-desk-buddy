@@ -4,7 +4,7 @@
 //  IdleScreen.h — Idle (clock + weather) screen declaration
 // ============================================================
 
-#include "../AppState.h"
+#include "AppState.h"
 #include "DisplaySetup.h"
 
 class IdleScreen {

@@ -4,9 +4,9 @@
 // ============================================================
 
 #include "MusicScreen.h"
-#include "../config.h"
-#include "../bt/AMSClient.h"
-#include "../bt/AVRCPHandler.h"
+#include "config.h"
+#include "AMSClient.h"
+#include "AVRCPHandler.h"
 
 // OLED Minimal Palette
 static const uint32_t COL_BG          = 0x000000;  // Pure OLED black

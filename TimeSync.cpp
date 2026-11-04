@@ -5,8 +5,8 @@
 #include "TimeSync.h"
 #include <WiFiUdp.h>
 #include <NTPClient.h>
-#include "../config.h"
-#include "../AppState.h"
+#include "config.h"
+#include "AppState.h"
 
 static WiFiUDP    s_udp;
 static NTPClient  s_ntp(s_udp, NTP_SERVER, NTP_UTC_OFFSET, NTP_UPDATE_INTERVAL_MS);

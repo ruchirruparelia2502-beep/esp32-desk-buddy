@@ -3,7 +3,7 @@
 // ============================================================
 
 #include "IdleScreen.h"
-#include "../config.h"
+#include "config.h"
 
 // Pure B&W palette
 static const uint32_t COL_BG       = 0x000000;  // pure black

@@ -7,8 +7,8 @@
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
-#include "../AppState.h"
-#include "../config.h"
+#include "AppState.h"
+#include "config.h"
 
 class AMSClient : public NimBLEServerCallbacks,
                   public NimBLEClientCallbacks {

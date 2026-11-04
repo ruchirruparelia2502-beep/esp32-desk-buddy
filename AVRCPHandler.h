@@ -5,8 +5,8 @@
 // ============================================================
 
 #include <Arduino.h>
-#include "../AppState.h"
-#include "../config.h"
+#include "AppState.h"
+#include "config.h"
 
 class AVRCPHandler {
 public:
