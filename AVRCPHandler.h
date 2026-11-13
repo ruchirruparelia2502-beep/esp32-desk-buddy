@@ -5,6 +5,8 @@
 // ============================================================
 
 #include <Arduino.h>
+#include <esp_avrc_api.h>
+#include <esp_a2dp_api.h>
 #include "AppState.h"
 #include "config.h"
 

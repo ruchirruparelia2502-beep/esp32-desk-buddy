@@ -1,51 +1,65 @@
 // ============================================================
-//  TouchManager.cpp — CST820 capacitive touch wrapper
+//  TouchManager.cpp — CST820 capacitive touch wrapper (Direct I2C)
 // ============================================================
 
 #include "TouchManager.h"
 #include <Wire.h>
-#include <TAMC_CST820.h>
 
-static TAMC_CST820 _cst820(PIN_TOUCH_SDA, PIN_TOUCH_SCL,
-                            PIN_TOUCH_INT, PIN_TOUCH_RST);
+#define CST820_I2C_ADDR 0x15
 
 unsigned long TouchManager::_lastTapMs  = 0;
 bool          TouchManager::_wasPressed = false;
 
 // ----------------------------------------------------------------
 bool TouchManager::begin() {
-  // TAMC_CST820 initialises Wire internally
-  _cst820.begin();
-  _cst820.setRotation(ROTATION_INVERTED);  // matches landscape rotation=1
-  Serial.println("[Touch] CST820 initialised");
+  if (PIN_TOUCH_RST >= 0) {
+    pinMode(PIN_TOUCH_RST, OUTPUT);
+    digitalWrite(PIN_TOUCH_RST, LOW);
+    delay(20);
+    digitalWrite(PIN_TOUCH_RST, HIGH);
+    delay(50);
+  }
+  if (PIN_TOUCH_INT >= 0) {
+    pinMode(PIN_TOUCH_INT, INPUT);
+  }
+
+  Wire.begin(PIN_TOUCH_SDA, PIN_TOUCH_SCL, 400000);
+  Serial.println("[Touch] CST820 I2C bus initialised");
   return true;
 }
 
 // ----------------------------------------------------------------
 TouchPoint TouchManager::read() {
   TouchPoint tp;
-  _cst820.read();
+  tp.pressed = false;
 
-  if (_cst820.isFingerUp()) {
-    tp.pressed = false;
+  // Request 6 bytes starting from register 0x01
+  Wire.beginTransmission(CST820_I2C_ADDR);
+  Wire.write(0x01);
+  if (Wire.endTransmission(false) != 0) {
     return tp;
   }
 
-  tp.pressed = true;
+  if (Wire.requestFrom((uint8_t)CST820_I2C_ADDR, (uint8_t)6) == 6) {
+    uint8_t data[6];
+    for (int i = 0; i < 6; i++) {
+      data[i] = Wire.read();
+    }
 
-  // CST820 raw is portrait 240x320; map to landscape 320x240
-  // Rotation 1 (landscape): swapped + possible mirror
-  // Raw: (rx, ry) in portrait 0..239 x 0..319
-  // Landscape: lx = ry, ly = 239 - rx
-  int rx = _cst820.x;
-  int ry = _cst820.y;
+    uint8_t points = data[1] & 0x0F;
+    if (points > 0) {
+      uint16_t rx = ((data[2] & 0x0F) << 8) | data[3];
+      uint16_t ry = ((data[4] & 0x0F) << 8) | data[5];
 
-  tp.x = ry;
-  tp.y = 239 - rx;
+      tp.pressed = true;
+      // CST820 raw is portrait 240x320; map to landscape 320x240 (rotation 1)
+      tp.x = ry;
+      tp.y = 239 - rx;
 
-  // Clamp
-  tp.x = constrain(tp.x, 0, 319);
-  tp.y = constrain(tp.y, 0, 239);
+      tp.x = constrain(tp.x, 0, 319);
+      tp.y = constrain(tp.y, 0, 239);
+    }
+  }
 
   return tp;
 }

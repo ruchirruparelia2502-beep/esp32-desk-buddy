@@ -12,9 +12,9 @@ static BluetoothA2DPSink a2dp_sink;
 void AVRCPHandler::begin() {
   // Register AVRCP metadata callback
   a2dp_sink.set_avrc_metadata_attribute_mask(
-    AVRC_MD_ATTR_TITLE   |
-    AVRC_MD_ATTR_ARTIST  |
-    AVRC_MD_ATTR_ALBUM
+    ESP_AVRC_MD_ATTR_TITLE   |
+    ESP_AVRC_MD_ATTR_ARTIST  |
+    ESP_AVRC_MD_ATTR_ALBUM
   );
   a2dp_sink.set_avrc_metadata_callback(_avrcMetadataCB);
   a2dp_sink.set_avrc_rn_playstatus_callback(_avrcPlayStatusCB);
@@ -34,13 +34,13 @@ void AVRCPHandler::_avrcMetadataCB(uint8_t id, const uint8_t* text) {
   if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(50)) != pdTRUE) return;
 
   switch (id) {
-    case AVRC_MD_ATTR_TITLE:
+    case ESP_AVRC_MD_ATTR_TITLE:
       g_state.track.title = val;
       break;
-    case AVRC_MD_ATTR_ARTIST:
+    case ESP_AVRC_MD_ATTR_ARTIST:
       g_state.track.artist = val;
       break;
-    case AVRC_MD_ATTR_ALBUM:
+    case ESP_AVRC_MD_ATTR_ALBUM:
       g_state.track.album = val;
       break;
     default:

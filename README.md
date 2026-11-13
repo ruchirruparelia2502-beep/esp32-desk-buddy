@@ -29,7 +29,6 @@ Open **Tools → Manage Libraries...** (or `Cmd + Shift + I` on macOS) and insta
 | Library Name | Author | Version | Notes |
 |--------------|--------|---------|-------|
 | **LovyanGFX** | lovyan03 | Latest (1.1.x+) | High-performance graphics driver |
-| **TAMC_CST820** | TAMC | Latest (1.0.x+) | CST820 Capacitive touch driver |
 | **NTPClient** | Fabrice Weinberg / arduino-libraries | Latest (3.2.x+) | NTP time synchronization |
 | **NimBLE-Arduino** | h2zero | Latest (1.4.x+) | Fast, lightweight BLE stack for iOS AMS |
 | **ESP32-A2DP** | Phil Schatzmann | Latest (1.8.x+) | Android Bluetooth A2DP/AVRCP sink |
