@@ -1,5 +1,5 @@
 // ============================================================
-//  AVRCPHandler.cpp — Android Classic BT A2DP Sink + AVRCP
+//  AVRCPHandler.cpp — Android & iOS Classic BT A2DP Sink + AVRCP
 // ============================================================
 
 #include "AVRCPHandler.h"
@@ -8,8 +8,17 @@
 // Global A2DP sink instance
 static BluetoothA2DPSink a2dp_sink;
 
+// Dummy stream callback to consume PCM audio data without initializing I2S.
+// This prevents I2S DMA faults and prevents GPIO 25 (Touch Reset) from being clobbered!
+static void _dummyAudioStream(const uint8_t *data, uint32_t length) {
+  // Discard raw PCM audio samples — Desk Buddy is a display-only device
+}
+
 // ----------------------------------------------------------------
 void AVRCPHandler::begin() {
+  // Disable I2S hardware output (false = do NOT initialize I2S peripheral or pins)
+  a2dp_sink.set_stream_reader(_dummyAudioStream, false);
+
   // Register AVRCP metadata callback
   a2dp_sink.set_avrc_metadata_attribute_mask(
     ESP_AVRC_MD_ATTR_TITLE   |
@@ -20,10 +29,10 @@ void AVRCPHandler::begin() {
   a2dp_sink.set_avrc_rn_playstatus_callback(_avrcPlayStatusCB);
   a2dp_sink.set_on_connection_state_changed(_connectionStateCB, nullptr);
 
-  // Start A2DP sink — this initialises Classic BT
+  // Start A2DP sink
   a2dp_sink.start(A2DP_DEVICE_NAME);
 
-  Serial.printf("[A2DP] Sink started, device name: %s\n", A2DP_DEVICE_NAME);
+  Serial.printf("[A2DP] Universal Bluetooth started: %s\n", A2DP_DEVICE_NAME);
 }
 
 // ----------------------------------------------------------------
@@ -72,19 +81,21 @@ void AVRCPHandler::_avrcPlayStatusCB(esp_avrc_playback_stat_t playback) {
 // ----------------------------------------------------------------
 void AVRCPHandler::_connectionStateCB(esp_a2d_connection_state_t state,
                                        void* ptr) {
-  if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(100)) != pdTRUE) return;
-
   if (state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
-    Serial.println("[A2DP] Android device connected");
-    g_state.btSource = BTSource::ANDROID_BT;
+    Serial.println("[A2DP] Bluetooth device connected!");
+    if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+      g_state.btSource = BTSource::ANDROID_BT;
+      xSemaphoreGive(g_state.mutex);
+    }
   } else if (state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
-    Serial.println("[A2DP] Android device disconnected");
-    g_state.btSource       = BTSource::NONE;
-    g_state.track          = TrackInfo{};
-    g_state.currentScreen  = Screen::IDLE;
+    Serial.println("[A2DP] Bluetooth device disconnected");
+    if (xSemaphoreTake(g_state.mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+      g_state.btSource       = BTSource::NONE;
+      g_state.track          = TrackInfo{};
+      g_state.currentScreen  = Screen::IDLE;
+      xSemaphoreGive(g_state.mutex);
+    }
   }
-
-  xSemaphoreGive(g_state.mutex);
 }
 
 // ----------------------------------------------------------------

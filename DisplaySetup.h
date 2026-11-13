@@ -12,7 +12,6 @@ public:
   lgfx::Panel_ILI9341 _panel_instance;
   lgfx::Bus_SPI       _bus_instance;
   lgfx::Light_PWM     _light_instance;
-  lgfx::Touch_CST816S _touch_instance;
 
   LGFX() {
     // --- SPI Bus (HSPI on ESP32) ---
@@ -65,26 +64,6 @@ public:
       cfg.pwm_channel = 7;
       _light_instance.config(cfg);
       _panel_instance.setLight(&_light_instance);
-    }
-
-    // --- Touch (CST820 / CST816S on I2C) ---
-    {
-      auto cfg = _touch_instance.config();
-      cfg.x_min      = 0;
-      cfg.x_max      = 239;
-      cfg.y_min      = 0;
-      cfg.y_max      = 319;
-      cfg.bus_shared = false;
-      cfg.offset_rotation = 0;
-      cfg.i2c_port   = 0;
-      cfg.i2c_addr   = 0x15;
-      cfg.pin_sda    = 33;
-      cfg.pin_scl    = 32;
-      cfg.pin_int    = -1;       // omit INT to prevent bus contention
-      cfg.pin_rst    = 25;
-      cfg.freq       = 400000;
-      _touch_instance.config(cfg);
-      _panel_instance.setTouch(&_touch_instance);
     }
 
     setPanel(&_panel_instance);
