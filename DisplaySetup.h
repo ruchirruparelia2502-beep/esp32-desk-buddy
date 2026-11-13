@@ -2,7 +2,7 @@
 
 // ============================================================
 //  DisplaySetup.h — LovyanGFX custom LGFX class for
-//  ILI9341 (SPI) on ESP32-2432S024C (CYD 2.4" Capacitive)
+//  ILI9341 (SPI) + XPT2046 Touch on ESP32-2432S024 CYD
 // ============================================================
 
 #include <LovyanGFX.hpp>
@@ -12,6 +12,7 @@ public:
   lgfx::Panel_ILI9341 _panel_instance;
   lgfx::Bus_SPI       _bus_instance;
   lgfx::Light_PWM     _light_instance;
+  lgfx::Touch_XPT2046 _touch_instance;
 
   LGFX() {
     // --- SPI Bus (HSPI on ESP32) ---
@@ -47,7 +48,7 @@ public:
       cfg.offset_rotation = 0;
       cfg.dummy_read_pixel = 8;
       cfg.dummy_read_bits  = 1;
-      cfg.readable       = false;  // Do not read back ID from MISO
+      cfg.readable       = false;
       cfg.invert         = false;  // Standard ILI9341 orientation
       cfg.rgb_order      = false;
       cfg.dlen_16bit     = false;
@@ -64,6 +65,25 @@ public:
       cfg.pwm_channel = 7;
       _light_instance.config(cfg);
       _panel_instance.setLight(&_light_instance);
+    }
+
+    // --- Touch (XPT2046 SPI on CYD) ---
+    {
+      auto cfg = _touch_instance.config();
+      cfg.x_min      =  300;
+      cfg.x_max      = 3900;
+      cfg.y_min      = 3700;
+      cfg.y_max      =  200;
+      cfg.pin_int    = 36;
+      cfg.bus_shared = false;
+      cfg.spi_host   = -1; // -1: use software SPI for XPT2046
+      cfg.pin_sclk   = 25;
+      cfg.pin_mosi   = 32;
+      cfg.pin_miso   = 39;
+      cfg.pin_cs     = 33;
+      cfg.freq       = 2000000;
+      _touch_instance.config(cfg);
+      _panel_instance.setTouch(&_touch_instance);
     }
 
     setPanel(&_panel_instance);

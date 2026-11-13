@@ -1,42 +1,30 @@
 // ============================================================
-//  TouchManager.cpp — CST820 driver powered by bb_captouch
+//  TouchManager.cpp — LovyanGFX integrated XPT2046 touch driver
 // ============================================================
 
 #include "TouchManager.h"
-#include "bb_captouch.h"
+#include "DisplaySetup.h"
 
-static BBCapTouch _bbTouch;
 unsigned long TouchManager::_lastTapMs  = 0;
 bool          TouchManager::_wasPressed = false;
 
 // ----------------------------------------------------------------
 bool TouchManager::begin() {
-  if (PIN_TOUCH_RST >= 0) {
-    pinMode(PIN_TOUCH_RST, OUTPUT);
-    digitalWrite(PIN_TOUCH_RST, LOW);
-    delay(50);
-    digitalWrite(PIN_TOUCH_RST, HIGH);
-    delay(100);
-  }
-
-  _bbTouch.init(TOUCH_CYD_24C);
-  _bbTouch.setOrientation(90, 320, 240);
-  Serial.printf("[Touch] bb_captouch initialized (sensor type %d)\n",
-                _bbTouch.sensorType());
+  Serial.println("[Touch] XPT2046 touch driver initialized via LovyanGFX");
   return true;
 }
 
 // ----------------------------------------------------------------
 TouchPoint TouchManager::read() {
   TouchPoint tp;
-  TOUCHINFO ti;
-
-  if (_bbTouch.getSamples(&ti) && ti.count > 0) {
+  int32_t x = 0, y = 0;
+  if (display.getTouch(&x, &y)) {
     tp.pressed = true;
-    tp.x = constrain((int)ti.x[0], 0, 319);
-    tp.y = constrain((int)ti.y[0], 0, 239);
+    tp.x = constrain((int)x, 0, 319);
+    tp.y = constrain((int)y, 0, 239);
+  } else {
+    tp.pressed = false;
   }
-
   return tp;
 }
 
