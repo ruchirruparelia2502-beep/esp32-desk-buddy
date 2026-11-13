@@ -15,7 +15,7 @@ public:
   static void draw();
 
   /**
-   * Lightweight update — repaints only changed text or play state.
+   * Lightweight update — repaints only changed text, play state, or scrubber progress.
    */
   static void update(const TrackInfo& prev);
 
@@ -28,6 +28,6 @@ private:
   static void drawBackground();
   static void drawArtist(const String& artist);
   static void drawTitle(const String& title);
-  static void drawScrubber();
+  static void drawScrubber(uint32_t elapsedMs, uint32_t durationMs);
   static void drawButtons(bool isPlaying);
 };

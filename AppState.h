@@ -9,10 +9,13 @@ enum class Screen   { IDLE, MUSIC };
 enum class BTSource { NONE, IOS_BLE, ANDROID_BT };
 
 struct TrackInfo {
-  String title;
-  String artist;
-  String album;
-  bool   isPlaying = false;
+  String   title;
+  String   artist;
+  String   album;
+  bool     isPlaying = false;
+  uint32_t durationMs = 0;       // Total track length in ms
+  uint32_t positionMs = 0;       // Current playback position in ms
+  uint32_t lastPosUpdateMs = 0;  // millis() timestamp of last position update
 };
 
 struct AppState {

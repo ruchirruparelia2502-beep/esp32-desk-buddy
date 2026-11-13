@@ -1,6 +1,7 @@
 // ============================================================
 //  MusicScreen.cpp — Minimalist Funky OLED Black Music UI
 //  Auto-fitting typography: BOTH Artist & Title ALWAYS fit!
+//  Live dynamic progress bar + timestamps
 // ============================================================
 
 #include "MusicScreen.h"
@@ -30,9 +31,17 @@ void MusicScreen::draw() {
     xSemaphoreGive(g_state.mutex);
   }
 
+  uint32_t elapsed = track.positionMs;
+  if (track.isPlaying && track.lastPosUpdateMs > 0) {
+    elapsed += (millis() - track.lastPosUpdateMs);
+  }
+  if (track.durationMs > 0 && elapsed > track.durationMs) {
+    elapsed = track.durationMs;
+  }
+
   drawArtist(track.artist);
   drawTitle(track.title);
-  drawScrubber();
+  drawScrubber(elapsed, track.durationMs);
   drawButtons(track.isPlaying);
 }
 
@@ -55,6 +64,23 @@ void MusicScreen::update(const TrackInfo& prev) {
 
   if (cur.isPlaying != prev.isPlaying) {
     drawButtons(cur.isPlaying);
+  }
+
+  // Calculate live elapsed position
+  uint32_t elapsed = cur.positionMs;
+  if (cur.isPlaying && cur.lastPosUpdateMs > 0) {
+    elapsed += (millis() - cur.lastPosUpdateMs);
+  }
+  if (cur.durationMs > 0 && elapsed > cur.durationMs) {
+    elapsed = cur.durationMs;
+  }
+
+  // Redraw scrubber when the second counter changes or when duration/play status changes
+  static uint32_t s_lastDrawnSec = 999999;
+  uint32_t curSec = elapsed / 1000;
+  if (curSec != s_lastDrawnSec || cur.durationMs != prev.durationMs || cur.isPlaying != prev.isPlaying) {
+    drawScrubber(elapsed, cur.durationMs);
+    s_lastDrawnSec = curSec;
   }
 }
 
@@ -118,17 +144,14 @@ void MusicScreen::drawArtist(const String& artist) {
   int w = display.textWidth(a.c_str());
 
   if (w <= availableWidth) {
-    // Fits at 100% scale
     display.drawString(a.c_str(), 24, 30);
   } else {
     float scale = (float)availableWidth / (float)w;
     if (scale >= 0.60f) {
-      // Dynamically scale down so full artist fits cleanly
       display.setTextSize(scale);
       display.drawString(a.c_str(), 24, 30);
       display.setTextSize(1.0f);
     } else {
-      // For extra-long artist names, use Font2 with precise scaling for sharpness
       display.setFont(&fonts::Font2);
       display.setTextSize(1.0f);
       int w2 = display.textWidth(a.c_str());
@@ -153,17 +176,14 @@ void MusicScreen::drawTitle(const String& title) {
   int w = display.textWidth(t.c_str());
 
   if (w <= availableWidth) {
-    // Fits comfortably in 1 line
     display.drawString(t.c_str(), 24, 68);
   } else {
-    // Check if slight proportional scaling fits 1 line
     float scale = (float)availableWidth / (float)w;
     if (scale >= 0.72f) {
       display.setTextSize(scale);
       display.drawString(t.c_str(), 24, 68);
       display.setTextSize(1.0f);
     } else {
-      // Split into 2 clean lines so entire title is 100% visible
       int mid = t.length() / 2;
       int splitPos = -1;
       int minDiff = 999;
@@ -192,7 +212,6 @@ void MusicScreen::drawTitle(const String& title) {
         display.drawString(line2.c_str(), 24, 78);
         display.setTextSize(1.0f);
       } else {
-        // No space found, scale down directly
         display.setTextSize(scale);
         display.drawString(t.c_str(), 24, 68);
         display.setTextSize(1.0f);
@@ -202,11 +221,54 @@ void MusicScreen::drawTitle(const String& title) {
 }
 
 // ----------------------------------------------------------------
-void MusicScreen::drawScrubber() {
-  // Ultra-minimal hairline progress track
-  display.drawFastHLine(24, 126, 272, c(display, COL_LINE_BG));
-  display.drawFastHLine(24, 126, 105, c(display, COL_LINE_ACTIVE));
-  display.fillCircle(129, 126, 3, c(display, COL_LINE_ACTIVE));
+void MusicScreen::drawScrubber(uint32_t elapsedMs, uint32_t durationMs) {
+  uint16_t bg = c(display, COL_BG);
+
+  // Clear scrubber line and timestamps zone (y: 120..146)
+  display.fillRect(20, 120, 280, 27, bg);
+
+  const int barX = 24;
+  const int barY = 124;
+  const int barW = 272;
+
+  // Background hairline track
+  display.drawFastHLine(barX, barY, barW, c(display, COL_LINE_BG));
+
+  int activeW = 0;
+  if (durationMs > 0) {
+    float frac = (float)elapsedMs / (float)durationMs;
+    if (frac > 1.0f) frac = 1.0f;
+    if (frac < 0.0f) frac = 0.0f;
+    activeW = (int)(frac * (float)barW);
+  }
+
+  // Active track fill & scrubber knob
+  if (activeW > 0) {
+    display.drawFastHLine(barX, barY, activeW, c(display, COL_LINE_ACTIVE));
+    display.fillCircle(barX + activeW, barY, 3, c(display, COL_LINE_ACTIVE));
+  } else {
+    display.fillCircle(barX, barY, 3, c(display, COL_LINE_ACTIVE));
+  }
+
+  // Timestamps
+  display.setFont(&fonts::Font0); // 8-pixel minimal font
+  display.setTextColor(c(display, COL_TEXT_SUB));
+
+  // Elapsed time (MM:SS)
+  uint32_t elSec = elapsedMs / 1000;
+  char elBuf[16];
+  snprintf(elBuf, sizeof(elBuf), "%u:%02u", elSec / 60, elSec % 60);
+  display.setTextDatum(lgfx::top_left);
+  display.drawString(elBuf, barX, 132);
+
+  // Total duration (MM:SS)
+  if (durationMs > 0) {
+    uint32_t durSec = durationMs / 1000;
+    char durBuf[16];
+    snprintf(durBuf, sizeof(durBuf), "%u:%02u", durSec / 60, durSec % 60);
+    display.setTextDatum(lgfx::top_right);
+    display.drawString(durBuf, barX + barW, 132);
+  }
 }
 
 // ----------------------------------------------------------------

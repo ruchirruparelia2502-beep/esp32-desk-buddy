@@ -29,6 +29,7 @@ private:
   // A2DP callbacks (static so they can be passed as C function pointers)
   static void _avrcMetadataCB(uint8_t id, const uint8_t* text);
   static void _avrcPlayStatusCB(esp_avrc_playback_stat_t playback);
+  static void _avrcPlayPosCB(uint32_t play_pos);
   static void _connectionStateCB(esp_a2d_connection_state_t state,
                                   void* ptr);
 };
