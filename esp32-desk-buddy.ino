@@ -50,6 +50,15 @@ void setup() {
   delay(300);
   Serial.println("\n[Boot] ESP32 Desk Buddy starting...");
 
+  // ---- Hardware Backlight & Reset lines ----
+  // CYD board revisions use GPIO 21 or 27 for backlight, and GPIO 4 for reset.
+  pinMode(21, OUTPUT);
+  digitalWrite(21, HIGH);
+  pinMode(27, OUTPUT);
+  digitalWrite(27, HIGH);
+  pinMode(4, OUTPUT);
+  digitalWrite(4, HIGH);
+
   // ---- Mutex ----
   g_state.mutex = xSemaphoreCreateMutex();
   configASSERT(g_state.mutex);
@@ -57,7 +66,7 @@ void setup() {
   // ---- Display init ----
   display.init();
   display.setRotation(1);  // landscape
-  display.setBrightness(220);
+  display.setBrightness(255);
   display.fillScreen(TFT_BLACK);
   Serial.println("[Boot] Display initialised");
 
@@ -83,18 +92,14 @@ void setup() {
     startNetworkServices();
   }
 
-  // ---- Bluetooth ----
-  // NOTE: BLE (NimBLE for iOS AMS) and Classic BT (A2DP for Android)
-  // share the same radio but use different stacks. ESP32-A2DP initialises
-  // Bluedroid; NimBLE uses its own stack. They CAN coexist if BT/BLE
-  // dual mode is active, but simultaneous connection is not guaranteed.
-  // Practical use: pair one phone at a time.
-
-  Serial.println("[Boot] Starting BLE (iOS AMS)...");
+  // ---- Bluetooth (Single Host Stack) ----
+#if TARGET_PHONE_MODE == PHONE_MODE_IOS
+  Serial.println("[Boot] Starting BLE (iOS AMS mode)...");
   AMSClient::begin();
-
-  Serial.println("[Boot] Starting Classic BT A2DP (Android)...");
+#elif TARGET_PHONE_MODE == PHONE_MODE_ANDROID
+  Serial.println("[Boot] Starting Classic BT A2DP (Android mode)...");
   AVRCPHandler::begin();
+#endif
 
   // ---- First draw ----
   s_fullRedrawPending = true;
@@ -192,6 +197,11 @@ void loop() {
 //  connectWiFi()
 // ================================================================
 static void connectWiFi() {
+  if (strcmp(WIFI_SSID, "YourSSID") == 0) {
+    Serial.println("[WiFi] Placeholder credentials ('YourSSID') detected — running in offline clock mode");
+    return;
+  }
+
   Serial.printf("[WiFi] Connecting to %s", WIFI_SSID);
 
   // Show connecting message on display

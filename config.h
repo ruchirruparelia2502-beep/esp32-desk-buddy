@@ -8,6 +8,13 @@
 #define WIFI_SSID       "YourSSID"
 #define WIFI_PASSWORD   "YourPassword"
 
+// ----- Phone Connection Mode -----
+// 1 = iOS (Apple Media Service via NimBLE)
+// 2 = Android (Spotify/YT Music metadata via Classic BT A2DP/AVRCP)
+#define PHONE_MODE_IOS      1
+#define PHONE_MODE_ANDROID  2
+#define TARGET_PHONE_MODE   PHONE_MODE_IOS
+
 // ----- NTP & Time Format -----
 #define NTP_SERVER      "pool.ntp.org"
 #define NTP_UTC_OFFSET  19800   // seconds east of UTC (e.g. IST = 5.5h = 19800)

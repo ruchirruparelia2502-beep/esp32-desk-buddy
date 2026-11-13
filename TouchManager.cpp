@@ -24,6 +24,7 @@ bool TouchManager::begin() {
   }
 
   Wire.begin(PIN_TOUCH_SDA, PIN_TOUCH_SCL, 400000);
+  Wire.setTimeOut(50);
   Serial.println("[Touch] CST820 I2C bus initialised");
   return true;
 }

@@ -2,24 +2,22 @@
 
 // ============================================================
 //  DisplaySetup.h — LovyanGFX custom LGFX class for
-//  ILI9341 (SPI) on ESP32-2432S024C
+//  ILI9341 (SPI) on ESP32-2432S024C (CYD 2.4" Capacitive)
 // ============================================================
 
 #include <LovyanGFX.hpp>
 
 class LGFX : public lgfx::LGFX_Device {
 public:
-  // Bus (SPI)
   lgfx::Panel_ILI9341 _panel_instance;
   lgfx::Bus_SPI       _bus_instance;
   lgfx::Light_PWM     _light_instance;
-  lgfx::Touch_CST816S _touch_instance; // placeholder – touch is handled separately
 
   LGFX() {
-    // --- SPI Bus ---
+    // --- SPI Bus (HSPI on ESP32) ---
     {
       auto cfg = _bus_instance.config();
-      cfg.spi_host   = VSPI_HOST;  // SPI2_HOST
+      cfg.spi_host   = HSPI_HOST;  // SPI2_HOST (GPIO 14, 13, 12, 15)
       cfg.spi_mode   = 0;
       cfg.freq_write = 40000000;   // 40 MHz write
       cfg.freq_read  = 16000000;   // 16 MHz read
@@ -38,7 +36,7 @@ public:
     {
       auto cfg = _panel_instance.config();
       cfg.pin_cs   = 15;   // CS
-      cfg.pin_rst  = -1;   // RST not connected
+      cfg.pin_rst  = -1;   // RST (tied to EN / hardware reset)
       cfg.pin_busy = -1;
       cfg.memory_width  = 240;
       cfg.memory_height = 320;
@@ -49,18 +47,18 @@ public:
       cfg.offset_rotation = 0;
       cfg.dummy_read_pixel = 8;
       cfg.dummy_read_bits  = 1;
-      cfg.readable       = true;
-      cfg.invert         = true;   // IPS panel needs colour inversion
+      cfg.readable       = false;  // Do not read back ID from MISO
+      cfg.invert         = false;  // Standard ILI9341 orientation
       cfg.rgb_order      = false;
       cfg.dlen_16bit     = false;
-      cfg.bus_shared     = false;
+      cfg.bus_shared     = true;
       _panel_instance.config(cfg);
     }
 
-    // --- Backlight (PWM) ---
+    // --- Backlight (PWM on GPIO 21 / 27) ---
     {
       auto cfg = _light_instance.config();
-      cfg.pin_bl      = 21;
+      cfg.pin_bl      = 21;       // LovyanGFX backlight control
       cfg.invert      = false;    // active HIGH
       cfg.freq        = 44100;
       cfg.pwm_channel = 7;
@@ -72,5 +70,4 @@ public:
   }
 };
 
-// Global display object – defined in main.cpp
 extern LGFX display;
