@@ -2,7 +2,7 @@
 
 // ============================================================
 //  DisplaySetup.h — LovyanGFX custom LGFX class for
-//  ILI9341 (SPI) + XPT2046 Touch on ESP32-2432S024 CYD
+//  ILI9341 (HSPI) + XPT2046 Touch on ESP32-2432S024 CYD
 // ============================================================
 
 #include <LovyanGFX.hpp>
@@ -52,7 +52,7 @@ public:
       cfg.invert         = false;  // Standard ILI9341 orientation
       cfg.rgb_order      = false;
       cfg.dlen_16bit     = false;
-      cfg.bus_shared     = true;
+      cfg.bus_shared     = true;   // Shared bus with touch
       _panel_instance.config(cfg);
     }
 
@@ -67,21 +67,21 @@ public:
       _panel_instance.setLight(&_light_instance);
     }
 
-    // --- Touch (XPT2046 SPI on CYD) ---
+    // --- Touch (XPT2046 on shared HSPI bus for ESP32-2432S024) ---
     {
       auto cfg = _touch_instance.config();
-      cfg.x_min      =  300;
+      cfg.x_min      = 300;
       cfg.x_max      = 3900;
-      cfg.y_min      = 3700;
-      cfg.y_max      =  200;
-      cfg.pin_int    = 36;
-      cfg.bus_shared = false;
-      cfg.spi_host   = -1; // -1: use software SPI for XPT2046
-      cfg.pin_sclk   = 25;
-      cfg.pin_mosi   = 32;
-      cfg.pin_miso   = 39;
-      cfg.pin_cs     = 33;
-      cfg.freq       = 2000000;
+      cfg.y_min      = 300;
+      cfg.y_max      = 3900;
+      cfg.pin_int    = 36;          // T_IRQ
+      cfg.bus_shared = true;        // Shared with display HSPI
+      cfg.spi_host   = HSPI_HOST;   // Shared HSPI
+      cfg.freq       = 2500000;     // 2.5 MHz for stable reads
+      cfg.pin_cs     = 33;          // T_CS
+      cfg.pin_sclk   = 14;          // Shared SCLK
+      cfg.pin_mosi   = 13;          // Shared MOSI
+      cfg.pin_miso   = 12;          // Shared MISO
       _touch_instance.config(cfg);
       _panel_instance.setTouch(&_touch_instance);
     }
