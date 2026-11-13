@@ -5,15 +5,15 @@
 // ============================================================
 
 // ----- WiFi -----
-#define WIFI_SSID       "YourSSID"
-#define WIFI_PASSWORD   "YourPassword"
+#define WIFI_SSID       "MH FLOOR 4D 2.4GHz"
+#define WIFI_PASSWORD   "Mayuhome@2025"
 
 // ----- Phone Connection Mode -----
-// 1 = iOS (Apple Media Service via NimBLE)
-// 2 = Android (Spotify/YT Music metadata via Classic BT A2DP/AVRCP)
-#define PHONE_MODE_IOS      1
-#define PHONE_MODE_ANDROID  2
-#define TARGET_PHONE_MODE   PHONE_MODE_IOS
+// 1 = iOS BLE (Apple Media Service)
+// 2 = Universal Bluetooth Audio/Metadata (Classic BT A2DP/AVRCP — works on iPhone & Android)
+#define PHONE_MODE_IOS_BLE     1
+#define PHONE_MODE_CLASSIC_BT  2
+#define TARGET_PHONE_MODE      PHONE_MODE_CLASSIC_BT
 
 // ----- NTP & Time Format -----
 #define NTP_SERVER      "pool.ntp.org"
@@ -27,13 +27,13 @@
 #define PIN_LCD_SCLK    14
 #define PIN_LCD_CS      15
 #define PIN_LCD_DC       2
-#define PIN_LCD_RST     -1   // tied to 3V3 on board
-#define PIN_LCD_BL      21
+#define PIN_LCD_RST     -1   // tied to 3V3 / EN on board
+#define PIN_LCD_BL      27
 
 // ----- Touch pins (CST820 I2C) -----
 #define PIN_TOUCH_SDA   33
 #define PIN_TOUCH_SCL   32
-#define PIN_TOUCH_INT   36
+#define PIN_TOUCH_INT   21
 #define PIN_TOUCH_RST   25
 
 // ----- BLE (NimBLE / AMS) -----
@@ -70,7 +70,7 @@
 #define AMS_PLAYER_ATTR_VOLUME      0x02
 
 // ----- Classic Bluetooth / A2DP -----
-#define A2DP_DEVICE_NAME "DeskBuddy BT"
+#define A2DP_DEVICE_NAME "DeskBuddy"
 
 // ----- Music activity timeout -----
 #define MUSIC_IDLE_TIMEOUT_MS  30000UL  // switch back to idle after 30s of no update
