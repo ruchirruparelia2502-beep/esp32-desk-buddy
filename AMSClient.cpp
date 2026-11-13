@@ -56,6 +56,7 @@ void AMSClient::_startAdvertising() {
   NimBLEAdvertising* pAdv = NimBLEDevice::getAdvertising();
   pAdv->setName(BLE_DEVICE_NAME);
   pAdv->addServiceUUID("180A");        // DIS
+  pAdv->addServiceUUID(AMS_SERVICE_UUID);
   pAdv->setScanResponse(true);
   pAdv->setMinPreferred(0x06);
   pAdv->setMaxPreferred(0x12);

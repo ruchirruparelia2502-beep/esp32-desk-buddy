@@ -51,9 +51,7 @@ void setup() {
   Serial.println("\n[Boot] ESP32 Desk Buddy starting...");
 
   // ---- Hardware Backlight & Reset lines ----
-  // CYD board revisions use GPIO 21 or 27 for backlight, and GPIO 4 for reset.
-  pinMode(21, OUTPUT);
-  digitalWrite(21, HIGH);
+  // CYD 2.4" uses GPIO 27 for backlight and GPIO 4 for LCD reset.
   pinMode(27, OUTPUT);
   digitalWrite(27, HIGH);
   pinMode(4, OUTPUT);
@@ -93,11 +91,11 @@ void setup() {
   }
 
   // ---- Bluetooth (Single Host Stack) ----
-#if TARGET_PHONE_MODE == PHONE_MODE_IOS
+#if TARGET_PHONE_MODE == PHONE_MODE_IOS_BLE
   Serial.println("[Boot] Starting BLE (iOS AMS mode)...");
   AMSClient::begin();
-#elif TARGET_PHONE_MODE == PHONE_MODE_ANDROID
-  Serial.println("[Boot] Starting Classic BT A2DP (Android mode)...");
+#elif TARGET_PHONE_MODE == PHONE_MODE_CLASSIC_BT
+  Serial.println("[Boot] Starting Universal Bluetooth Audio/AVRCP (DeskBuddy)...");
   AVRCPHandler::begin();
 #endif
 
